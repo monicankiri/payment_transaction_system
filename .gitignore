@@ -1,0 +1,8 @@
+.env
+venv/
+__pycache__/
+*.pyc
+
+Payment-System-Notes.md
+Build_log.md
+projectstructure.md
