@@ -8,7 +8,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-
+from sqlalchemy import DateTime, Enum as SQLEnum, Numeric, String
+from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, Numeric, String
 
 
 class TransactionStatus(str, Enum):
@@ -35,11 +36,13 @@ class Transaction(Base):
 
     customer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("customers.id"),
         nullable=False
     )
 
     business_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("businesses.id"),
         nullable=False
     )
 
