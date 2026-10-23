@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -8,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 
+# Import models so SQLAlchemy registers their tables.
 from models.customer import Customer
 from models.business import Business
 from models.transaction import Transaction
@@ -43,8 +45,30 @@ def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
-
-
+@pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
     Base.metadata.create_all(bind=test_engine)
+
+    yield
+
+    Base.metadata.drop_all(bind=test_engine)
+
+
+@pytest.fixture
+def client():
+    app.dependency_overrides[get_db] = override_get_db
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def clean_test_data(setup_test_database):
+    with TestingSessionLocal() as db:
+        db.query(Transaction).delete()
+        db.query(Customer).delete()
+        db.query(Business).delete()
+        db.commit()
+
